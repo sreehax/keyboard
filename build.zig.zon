@@ -1,0 +1,19 @@
+.{
+  .name = "firmware",
+  .version = "0.1.0",
+  .paths = .{
+    "src/",
+    "build.zig",
+    "build.zig.zon"
+  },
+  .dependencies = .{
+    .microzig = .{
+      .url = "https://github.com/ZigEmbeddedGroup/microzig/archive/f8a506ccc28447ff6f20bba13ad04e7ce8d26318.tar.gz",
+      .hash = "12209d58d008c9cd79daf0b9a78e316cabe6c210a9f367d03c1c9ab18f0b50541248",
+    },
+    .rp2040 = .{
+      .url = "https://github.com/ZigEmbeddedGroup/raspberrypi-rp2040/archive/d9cbc3654e2925dfdf2ccf4cd8179728dbc2d0bb.tar.gz",
+      .hash = "1220b1d10ae70a051faa87839da881e3f344b880e90c47a3c2d24394b6282578d840",
+    },
+  },
+}
