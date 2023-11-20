@@ -41,7 +41,7 @@ pub fn main() !void {
 
     while (true) {
         rp2040.usb.Usb.task(
-            true,
+            false,
         ) catch unreachable;
     }
 }
