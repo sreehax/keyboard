@@ -4,26 +4,24 @@ const rp2040 = microzig.hal;
 const usb = rp2040.usb;
 
 fn ep1_in_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
-    std.log.info("Got an IN interrupt!", .{});
-    std.log.info("data: {any}", .{data});
+    _ = data;
+    std.log.info("got an IN callback", .{});
     usb.Usb.callbacks.usb_start_rx(
         dc.endpoints[2], // EP1_OUT_CFG,
         64,
     );
 }
 
-const key_a = [_]u8{ 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00 };
 fn ep1_out_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
-    std.log.info("Got an OUT interrupt!", .{});
+    std.log.info("got an OUT callback", .{});
     std.log.info("data: {any}", .{data});
     usb.Usb.callbacks.usb_start_tx(dc.endpoints[3], // EP1_IN_CFG,
-        key_a[0..] // data,
-    );
+        data);
 }
 
 pub var EP1_OUT_CFG: usb.EndpointConfiguration = .{
     .descriptor = &usb.EndpointDescriptor{
-        .length = @as(u8, @intCast(@sizeOf(usb.EndpointDescriptor))),
+        .length = 7,
         .descriptor_type = usb.DescType.Endpoint,
         .endpoint_address = usb.Dir.Out.endpoint(1),
         .attributes = @intFromEnum(usb.TransferType.Interrupt),
@@ -39,7 +37,7 @@ pub var EP1_OUT_CFG: usb.EndpointConfiguration = .{
 
 pub var EP1_IN_CFG: usb.EndpointConfiguration = .{
     .descriptor = &usb.EndpointDescriptor{
-        .length = @as(u8, @intCast(@sizeOf(usb.EndpointDescriptor))),
+        .length = 7,
         .descriptor_type = usb.DescType.Endpoint,
         .endpoint_address = usb.Dir.In.endpoint(1),
         .attributes = @intFromEnum(usb.TransferType.Interrupt),
@@ -52,10 +50,10 @@ pub var EP1_IN_CFG: usb.EndpointConfiguration = .{
     .next_pid_1 = false,
     .callback = ep1_in_callback,
 };
-
+comptime {}
 pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
     .device_descriptor = &.{
-        .length = @as(u8, @intCast(@sizeOf(usb.DeviceDescriptor))),
+        .length = 18,
         .descriptor_type = usb.DescType.Device,
         .bcd_usb = 0x0110, // USB 1.1
         .device_class = 0x03, // HID
@@ -71,7 +69,7 @@ pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
         .num_configurations = 1,
     },
     .interface_descriptor = &.{
-        .length = @as(u8, @intCast(@sizeOf(usb.InterfaceDescriptor))),
+        .length = 9,
         .descriptor_type = usb.DescType.Interface,
         .interface_number = 0, // TODO: Figure this shit out??
         .alternate_setting = 0,
@@ -82,9 +80,9 @@ pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
         .interface_s = 0,
     },
     .config_descriptor = &.{
-        .length = @as(u8, @intCast(@sizeOf(usb.ConfigurationDescriptor))),
+        .length = 9,
         .descriptor_type = usb.DescType.Config,
-        .total_length = @as(u8, @intCast(@sizeOf(usb.ConfigurationDescriptor) + @sizeOf(usb.InterfaceDescriptor) + @sizeOf(usb.EndpointDescriptor) + @sizeOf(usb.EndpointDescriptor))),
+        .total_length = 9 + 9 + 7 + 7 + 9,
         .num_interfaces = 1,
         .configuration_value = 1,
         .configuration_s = 0,
