@@ -1,6 +1,7 @@
 const std = @import("std");
 const microzig = @import("microzig");
 const ucfg = @import("usb.zig");
+const config = @import("config.zig");
 const rp2040 = microzig.hal;
 const time = rp2040.time;
 const gpio = rp2040.gpio;
@@ -26,6 +27,22 @@ pub fn main() !void {
     led.set_function(.sio);
     led.set_direction(.out);
     led.put(1);
+
+    // Set up all the outputs as HIGH
+    inline for (config.outputs) |n| {
+        const curr = gpio.num(n);
+        curr.set_function(.sio);
+        curr.set_direction(.out);
+        curr.put(1);
+    }
+
+    // Set up all the inputs with the internal pull-up resistor
+    inline for (config.inputs) |n| {
+        const curr = gpio.num(n);
+        curr.set_function(.sio);
+        curr.set_direction(.in);
+        curr.set_pull(.up);
+    }
 
     uart.apply(.{
         .baud_rate = baud_rate,

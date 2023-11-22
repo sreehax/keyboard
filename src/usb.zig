@@ -5,7 +5,6 @@ const usb = rp2040.usb;
 
 fn ep1_in_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
     _ = data;
-    std.log.info("got an IN callback", .{});
     usb.Usb.callbacks.usb_start_rx(
         dc.endpoints[2], // EP1_OUT_CFG,
         64,
@@ -13,8 +12,6 @@ fn ep1_in_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
 }
 
 fn ep1_out_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
-    std.log.info("got an OUT callback", .{});
-    std.log.info("data: {any}", .{data});
     usb.Usb.callbacks.usb_start_tx(dc.endpoints[3], // EP1_IN_CFG,
         data);
 }
@@ -112,40 +109,43 @@ pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
     },
 };
 
+pub const TOTAL_BYTES = 24;
 pub const MyReportDescriptor = [_]u8{
     0x05, 0x01, // Usage Page (Generic Desktop),
     0x09, 0x06, // Usage (Keyboard),
-    0xA1, 0x01, // Collection (Application)
-    0x75, 0x01,
-    0x95, 0x08,
-
-    0x05, 0x07,
-    0x19, 0xE0,
-    0x29, 0xE7,
-    0x15, 0x00,
-    0x25, 0x01,
-
-    0x81, 0x02,
-    0x95, 0x01,
-    0x75, 0x08,
-    0x81, 0x03,
-    0x95, 0x05,
-    0x75, 0x01,
-    0x05, 0x08,
-    0x19, 0x01,
-    0x29, 0x05,
-    0x91, 0x02,
-
-    0x95, 0x01,
-    0x75, 0x03,
-    0x91, 0x03,
-    0x95, 0x06,
-    0x75, 0x08,
-    0x15, 0x00,
-    0x25, 0x68,
-    0x05, 0x07,
-    0x19, 0x00,
-    0x29, 0x68,
-    0x81, 0x00,
-    0xC0,
+    0xA1, 0x01, // Collection (Application),
+    0x85, 0x01, //   Report ID (1)
+    // Modifiers (Used for both the boot specification and NKRO)
+    0x75, 0x01, //   Report Size (1),
+    0x95, 0x08, //   Report Count (8),
+    0x05, 0x07, //   Usage Page (Key Codes),
+    0x19, 0xE0, //   Usage Minimum (224),
+    0x29, 0xE7, //   Usage Maximum (231),
+    0x15, 0x00, //   Logical Minimum (0),
+    0x25, 0x01, //   Logical Maximum (1),
+    0x81, 0x02, //   Input (Data, Variable, Absolute)
+    // LED output report
+    0x95, 0x05, //   Report Count (5)
+    0x75, 0x01, //   Report Size (1),
+    0x05, 0x08, //   Usage Page (LEDs),
+    0x19, 0x01, //   Usage Minimum (1),
+    0x29, 0x05, //   Usage Maximum (5),
+    0x91, 0x02, //   Output (Data, Variable, Absolute),
+    0x95, 0x01, //   Report Count (1),
+    0x75, 0x03, //   Report Size (3),
+    0x91, 0x03, //   Output (Constant),
+    // Padding / fake boot keyboard
+    0x95, 0x38, //   Report Count (56),
+    0x75, 0x01, //   Report Size (1),
+    0x81, 0x01, //   Input (Bruh),
+    // rest of the keys
+    0x95, (TOTAL_BYTES - 8) * 8, //   Report Count (),
+    0x75, 0x01, //   Report Size (1),
+    0x15, 0x00, //   Logical Minimum (0),
+    0x25, 0x01, //   Logical Maximum (1),
+    0x05, 0x07, //   Usage Page (Key Codes),
+    0x19, 0x00, //   Usage Minimum (0),
+    0x29, (TOTAL_BYTES - 8) * 8 - 1, //   Usage Maximum (),
+    0x81, 0x02, //   Input (Data, Variable, Absolute),
+    0xC0, //       End Collection
 };

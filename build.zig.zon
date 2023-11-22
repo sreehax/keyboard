@@ -8,8 +8,8 @@
   },
   .dependencies = .{
     .microzig = .{
-      .url = "https://github.com/ZigEmbeddedGroup/microzig/archive/f8a506ccc28447ff6f20bba13ad04e7ce8d26318.tar.gz",
-      .hash = "12209d58d008c9cd79daf0b9a78e316cabe6c210a9f367d03c1c9ab18f0b50541248",
+      .url = "https://github.com/ZigEmbeddedGroup/microzig/archive/ba494ff216d60ce2e6c12879360a8e7c6ddfa2a4.tar.gz",
+      .hash = "122056cd0ca52aca51358b6d346ee3114fc84e47b48a907ad0a673aee9748689bc3f",
     },
     .rp2040 = .{
       .url = "https://github.com/ZigEmbeddedGroup/raspberrypi-rp2040/archive/d9cbc3654e2925dfdf2ccf4cd8179728dbc2d0bb.tar.gz",
