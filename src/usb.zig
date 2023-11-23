@@ -1,6 +1,7 @@
 const std = @import("std");
 const microzig = @import("microzig");
 const rp2040 = microzig.hal;
+const Keycode = @import("scancodes.zig").Keycode;
 const usb = rp2040.usb;
 
 fn ep1_in_callback(dc: *usb.DeviceConfiguration, data: []const u8) void {
@@ -47,7 +48,7 @@ pub var EP1_IN_CFG: usb.EndpointConfiguration = .{
     .next_pid_1 = false,
     .callback = ep1_in_callback,
 };
-comptime {}
+
 pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
     .device_descriptor = &.{
         .length = 18,
@@ -109,6 +110,24 @@ pub var DEVICE_CONFIGURATION: usb.DeviceConfiguration = .{
     },
 };
 
+pub fn init() void {
+    // Initialize the USB clock
+    usb.Usb.init_clk();
+
+    // Initialize the USB device with our configuration settings
+    usb.Usb.init_device(&DEVICE_CONFIGURATION) catch unreachable;
+}
+
+pub fn add_key_to_report(key: Keycode) void {
+    std.log.info("Key pressed: {s}", .{@tagName(key)});
+}
+
+// This is a hybrid report descriptor with support for both legacy 6KRO and infinite NKRO
+// This is achieved by marking the traditional 6KRO space as padding and filling in the
+// NKRO info right after. This means compliant hosts will see the NKRO info while BIOSes
+// that only support 6KRO will ignore the descriptor and only see the 6KRO info.
+// Thus, both cases are fully satisfied, even if the BIOS doesn't say it only supports 6KRO.
+// Adapted from https://emergent.unpythonic.net/01626210345
 pub const TOTAL_BYTES = 24;
 pub const MyReportDescriptor = [_]u8{
     0x05, 0x01, // Usage Page (Generic Desktop),

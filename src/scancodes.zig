@@ -1,4 +1,4 @@
-pub const Keys = enum(u8) {
+pub const Keycode = enum(u8) {
     NA = 0x00,
     // Letters
     A = 0x04,
@@ -72,8 +72,7 @@ pub const Keys = enum(u8) {
     F12,
     // I straight up do not care about the rest
     // If you do, then add them lol
-    // MUST BE LAST
-    LCtrl = 0xF7,
+    LCtrl = 0xE0,
     LShift,
     LAlt,
     LMeta,
@@ -81,5 +80,14 @@ pub const Keys = enum(u8) {
     RShift,
     RAlt,
     RMeta,
+    // MUST BE LAST
     Fn = 0xFF,
+
+    pub fn modifierBit(self: Keycode) ?u8 {
+        const keycode = @intFromEnum(self);
+        if (keycode >= 0xE0 and keycode <= 0xE7) {
+            return 1 << (keycode - 0xE0);
+        }
+        return null;
+    }
 };

@@ -1,16 +1,9 @@
 const std = @import("std");
 const microzig = @import("microzig");
-const ucfg = @import("usb.zig");
-const config = @import("config.zig");
+const usb = @import("usb.zig");
+const gpio = @import("gpio.zig");
 const rp2040 = microzig.hal;
 const time = rp2040.time;
-const gpio = rp2040.gpio;
-
-const led = gpio.num(25);
-const uart = rp2040.uart.num(0);
-const baud_rate = 115200;
-const uart_tx_pin = gpio.num(0);
-const uart_rx_pin = gpio.num(1);
 
 pub fn panic(message: []const u8, _: ?*std.builtin.StackTrace, _: ?usize) noreturn {
     std.log.err("panic: {s}", .{message});
@@ -24,41 +17,31 @@ pub const std_options = struct {
 };
 
 pub fn main() !void {
-    led.set_function(.sio);
-    led.set_direction(.out);
-    led.put(1);
+    // set up the LED lit up
+    gpio.led_init();
+
+    // enable the UART
+    gpio.uart_init();
+
+    // set up the inputs and outputs
+    gpio.pins_init();
 
     // Set up all the outputs as HIGH
-    inline for (config.outputs) |n| {
-        const curr = gpio.num(n);
-        curr.set_function(.sio);
-        curr.set_direction(.out);
-        curr.put(1);
-    }
+    gpio.pins_init();
 
-    // Set up all the inputs with the internal pull-up resistor
-    inline for (config.inputs) |n| {
-        const curr = gpio.num(n);
-        curr.set_function(.sio);
-        curr.set_direction(.in);
-        curr.set_pull(.up);
-    }
-
-    uart.apply(.{
-        .baud_rate = baud_rate,
-        .tx_pin = uart_tx_pin,
-        .rx_pin = uart_rx_pin,
-        .clock_config = rp2040.clock_config,
-    });
-
-    rp2040.uart.init_logger(uart);
-
-    rp2040.usb.Usb.init_clk();
-    rp2040.usb.Usb.init_device(&ucfg.DEVICE_CONFIGURATION) catch unreachable;
+    // Initialize the USB interface
+    usb.init();
 
     while (true) {
+        // Do the actual polling
+        // would be perfect to move to the other core...
         rp2040.usb.Usb.task(
             false,
         ) catch unreachable;
+
+        // Actually scan the keyboard matrix
+        // This function will also add any pressed keys to the report,
+        // so we have nothing else to do except keep calling the function.
+        gpio.scan_matrix();
     }
 }
